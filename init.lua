@@ -673,7 +673,37 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        -- pyright = {},
+        pyright = {
+           settings = {
+            python = {
+              analysis = {
+                typeCheckingMode = "basic", -- Can be "off", "basic", or "strict"
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = "workspace", -- "openFilesOnly" for better performance
+                autoImportCompletions = true,
+              },
+              -- Use uv for dependency management
+              pythonPath = vim.fn.exepath("python3") or vim.fn.exepath("python"),
+              venvPath = vim.fn.expand("~/.cache/pypoetry/virtualenvs"), -- Add your virtualenv path if using poetry
+            },
+          },
+          -- Connect pyright to uv
+          on_new_config = function(config, root_dir)
+            -- Detect if project uses uv
+            local has_uv = vim.fn.filereadable(root_dir .. "/uvconfig.toml") == 1 or 
+                          vim.fn.filereadable(root_dir .. "/.uv") == 1
+            
+            if has_uv then
+              -- Find uv virtual environment
+              local uv_venv = vim.fn.trim(vim.fn.system("uv venv --path"))
+              if uv_venv ~= "" then
+                -- Set Python interpreter to use uv's venv
+                config.settings.python.pythonPath = uv_venv .. "/bin/python"
+              end
+            end
+          end,
+        },
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
