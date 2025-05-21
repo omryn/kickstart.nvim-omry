@@ -634,10 +634,10 @@ require('lazy').setup({
         underline = { severity = vim.diagnostic.severity.ERROR },
         signs = vim.g.have_nerd_font and {
           text = {
-            [vim.diagnostic.severity.ERROR] = '󰅚 ',
-            [vim.diagnostic.severity.WARN] = '󰀪 ',
-            [vim.diagnostic.severity.INFO] = '󰋽 ',
-            [vim.diagnostic.severity.HINT] = '󰌶 ',
+            [vim.diagnostic.severity.ERROR] = '🚨',
+            [vim.diagnostic.severity.WARN] = '⚠️',
+            [vim.diagnostic.severity.INFO] = 'ℹ️',
+            [vim.diagnostic.severity.HINT] = '🤔',
           },
         } or {},
         virtual_text = {
@@ -674,36 +674,56 @@ require('lazy').setup({
         -- clangd = {},
         -- gopls = {},
         pyright = {
-           settings = {
+          settings = {
             python = {
               analysis = {
-                typeCheckingMode = "basic", -- Can be "off", "basic", or "strict"
+                typeCheckingMode = 'basic', -- Can be "off", "basic", or "strict"
                 autoSearchPaths = true,
                 useLibraryCodeForTypes = true,
-                diagnosticMode = "workspace", -- "openFilesOnly" for better performance
+                diagnosticMode = 'workspace', -- "openFilesOnly" for better performance
                 autoImportCompletions = true,
               },
               -- Use uv for dependency management
-              pythonPath = vim.fn.exepath("python3") or vim.fn.exepath("python"),
-              venvPath = vim.fn.expand("~/.cache/pypoetry/virtualenvs"), -- Add your virtualenv path if using poetry
+              pythonPath = vim.fn.exepath 'python3' or vim.fn.exepath 'python',
+              venvPath = vim.fn.expand '~/.cache/pypoetry/virtualenvs', -- Add your virtualenv path if using poetry
             },
           },
           -- Connect pyright to uv
           on_new_config = function(config, root_dir)
             -- Detect if project uses uv
-            local has_uv = vim.fn.filereadable(root_dir .. "/uvconfig.toml") == 1 or 
-                          vim.fn.filereadable(root_dir .. "/.uv") == 1
-            
+            local has_uv = vim.fn.filereadable(root_dir .. '/uvconfig.toml') == 1 or vim.fn.filereadable(root_dir .. '/.uv') == 1
+
             if has_uv then
               -- Find uv virtual environment
-              local uv_venv = vim.fn.trim(vim.fn.system("uv venv --path"))
-              if uv_venv ~= "" then
+              local uv_venv = vim.fn.trim(vim.fn.system 'uv venv --path')
+              if uv_venv ~= '' then
                 -- Set Python interpreter to use uv's venv
-                config.settings.python.pythonPath = uv_venv .. "/bin/python"
+                config.settings.python.pythonPath = uv_venv .. '/opt/homebrew/bin/python3'
               end
             end
           end,
         },
+        ruff = {
+          init_options = {
+            settings = {
+              -- Configure Ruff to follow PEP 8
+              lint = {
+                select = {
+                  'E', -- pycodestyle errors
+                  'F', -- pyflakes
+                  'I', -- isort
+                },
+                ignore = {},
+                fixable = { 'ALL' }, -- Auto-fix all issues that can be fixed
+              },
+              format = {
+                -- Format according to Black's defaults which follow PEP 8
+                line_length = 88, -- Black's default
+              },
+            },
+          },
+        },
+
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -952,7 +972,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1020,5 +1040,8 @@ require('lazy').setup({
   },
 })
 
+-- Set Python host program to use uv's environment
+vim.g.python3_host_prog = vim.fn.trim(vim.fn.system 'uv venv --path') .. '/opt/homebrew/bin/python3'
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+require 'custom/remap'
