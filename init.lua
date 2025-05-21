@@ -1044,4 +1044,4 @@ require('lazy').setup({
 vim.g.python3_host_prog = vim.fn.trim(vim.fn.system 'uv venv --path') .. '/opt/homebrew/bin/python3'
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
-require 'custom/remap'
+require 'custom/init'
