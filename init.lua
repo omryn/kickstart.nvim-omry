@@ -703,26 +703,6 @@ require('lazy').setup({
             end
           end,
         },
-        ruff = {
-          init_options = {
-            settings = {
-              -- Configure Ruff to follow PEP 8
-              lint = {
-                select = {
-                  'E', -- pycodestyle errors
-                  'F', -- pyflakes
-                  'I', -- isort
-                },
-                ignore = {},
-                fixable = { 'ALL' }, -- Auto-fix all issues that can be fixed
-              },
-              format = {
-                -- Format according to Black's defaults which follow PEP 8
-                line_length = 88, -- Black's default
-              },
-            },
-          },
-        },
 
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -766,6 +746,9 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'pyright',
+        'ruff',
+        'debugpy',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1005,8 +988,8 @@ require('lazy').setup({
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.

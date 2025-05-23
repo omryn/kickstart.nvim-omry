@@ -5,5 +5,7 @@ vim.g.terminal_emulator = 'zsh'
 -- Enable clipboard sync with macOS system clipboard
 vim.opt.clipboard:append 'unnamedplus'
 
+vim.opt.relativenumber = true
+
 require './custom/remap'
 return {}

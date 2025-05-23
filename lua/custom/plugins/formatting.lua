@@ -1,34 +1,61 @@
 return {
-  'nvimtools/none-ls.nvim', -- or "jose-elias-alvarez/null-ls.nvim" for older setups
-  opts = function(_, opts)
-    local nls = require 'null-ls'
-    opts.sources = opts.sources or {}
+  -- Formatting
+  {
+    'stevearc/conform.nvim',
+    lazy = false,
+    keys = {
+      {
+        '<leader>f',
+        function()
+          require('conform').format { async = true, lsp_fallback = true }
+        end,
+        mode = '',
+        desc = '[F]ormat buffer',
+      },
+    },
+    opts = {
+      notify_on_error = false,
+      format_on_save = function(bufnr)
+        -- Disable "format_on_save lsp_fallback" for languages that don't
+        -- have a well standardized coding style. You can add additional
+        -- languages here or re-enable it for the disabled ones.
+        local disable_filetypes = { c = true, cpp = true }
+        return {
+          timeout_ms = 2000,
+          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
+        }
+      end,
+      formatters_by_ft = {
+        lua = { 'stylua' },
+        python = { 'ruff_format', 'ruff_organize_imports', 'ruff_fix' },
+        javascript = { { 'prettierd', 'prettier' } },
+        typescript = { { 'prettierd', 'prettier' } },
+        -- Add more formatters here
+      },
+    },
+  },
 
-    -- Use uv-installed formatters if available
-    local function get_uv_bin(bin_name)
-      -- Try to find in uv's venv first
-      local uv_venv = vim.fn.trim(vim.fn.system 'uv venv --path')
-      if uv_venv ~= '' then
-        local bin_path = uv_venv .. '/bin/' .. bin_name
-        if vim.fn.executable(bin_path) == 1 then
-          return bin_path
-        end
-      end
-      -- Fallback to regular path
-      return bin_name
-    end
+  -- Linting
+  {
+    'mfussenegger/nvim-lint',
+    event = { 'BufReadPre', 'BufNewFile' },
+    config = function()
+      local lint = require 'lint'
+      lint.linters_by_ft = {
+        python = { 'ruff' },
+        javascript = { 'eslint_d' },
+        typescript = { 'eslint_d' },
+        -- Add more linters here
+      }
 
-    table.insert(
-      opts.sources,
-      nls.builtins.formatting.black.with {
-        command = get_uv_bin 'black',
-      }
-    )
-    table.insert(
-      opts.sources,
-      nls.builtins.formatting.isort.with {
-        command = get_uv_bin 'isort',
-      }
-    )
-  end,
+      -- Create autocommand which carries out the actual linting
+      local lint_augroup = vim.api.nvim_create_augroup('lint', { clear = true })
+      vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave' }, {
+        group = lint_augroup,
+        callback = function()
+          lint.try_lint()
+        end,
+      })
+    end,
+  },
 }
